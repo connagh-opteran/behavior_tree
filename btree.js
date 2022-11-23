@@ -701,10 +701,78 @@ function getFriendlyStatus(status) {
     }
 }
 
+
+function parse_xml(xml_string) {
+    let parser = new DOMParser();
+    let xmlDom = parser.parseFromString(xml_string, 'text/xml');
+    let bt_xml = xmlDom.querySelector('BehaviorTree');
+    if(bt_xml.children.length != 1) {
+        console.log("INVALID XML")
+        return null;
+    }
+    else {
+        let bt_obj = recurse_build_obj(bt_xml.children[0]);
+        
+        return {root: bt_obj, line:null, error: null};
+    }
+    
+}
+
+function recurse_build_obj(node){
+    var node_obj = {children: []};
+    let node_name = node.nodeName;
+    node_obj['nodeStatus'] = 2;
+    switch(node_name.toLowerCase()) {
+        case "sequence":
+            node_obj['kind'] = "sequence";
+            node_obj['name'] = node.getAttribute('name');
+            node_obj['hasNot'] = false;
+            break;
+        case "parallel":
+            break; // TODO: IMPLEMENT
+        case "fallback":
+            node_obj['kind'] = "fallback";
+            node_obj['name'] = node.getAttribute('name');
+            node_obj['hasNot'] = false;
+            break;
+        case "decorator":    
+            node_obj['kind'] = "decorator";
+            node_obj['name'] = node.getAttribute('name');
+            node_obj['hasNot'] = false;
+            break;
+        case "action":
+            node_obj['kind'] = "action";
+            node_obj['name'] = node.getAttribute('ID');
+            node_obj['hasNot'] = false;
+            break;
+        case "condition":
+            node_obj['kind'] = "condition";
+            node_obj['name'] = node.getAttribute('ID');
+            node_obj['hasNot'] = false;
+            break;
+        case "inverter":
+            node = node.children[0]
+            node_obj = recurse_build_obj(node);
+            node_obj['hasNot'] = true;
+            break;
+        default:
+            node_obj['kind'] = "action";
+            node_obj['name'] = node_name
+            node_obj['hasNot'] = false;
+            break;
+    }
+    for(let child of node.children){
+        node_obj.children.push(recurse_build_obj(child))
+    }
+    return node_obj;
+
+}
+
+
 if (typeof exports !== 'undefined' && exports) {
     exports.bt = {
         BehaviorTree,
-        parse, SUCCESS, FAILED, RUNNING,
+        parse, parse_xml, SUCCESS, FAILED, RUNNING,
         fallback, sequence, parallel, condition, action,
         FALLBACK, SEQUENCE, PARALLEL, CONDITION, ACTION,
         SAMPLE_TREE, getFriendlyStatus

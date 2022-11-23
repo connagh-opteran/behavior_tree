@@ -395,14 +395,22 @@ function main(parentElement) {
     let treeSelect = document.getElementById('treeFileSelect'),
         treeInput  = document.getElementById('treeFileInput');
 
-    treeInput.addEventListener('change', function() {
+    treeInput.addEventListener('input', function() {
         if (this.files.length < 1) {
             return;
         }
         let reader = new FileReader();
-        reader.onload = function(e) {
-            loadTree(e.target.result, parentElement);
-        };
+        if(this.files[0].name.indexOf('.xml')!=-1){
+            reader.onload = function(e) {
+                let obj  = parse_xml(e.target.result);
+                showTree(BehaviorTree.fromJson(obj), parentElement);
+            }
+        } else {
+            reader.onload = function(e) {
+                loadTree(e.target.result, parentElement);
+            };  
+        }
+        
         reader.readAsText(this.files[0]);
     }, false);
 
