@@ -94,6 +94,15 @@ function renderTree(parent, root, width, x0, x1) {
             }
 
             const SZ = 24;
+            let name = d.data.name;
+            switch(k){
+                case SEQUENCE: 
+                    name = '\u2192'; break;
+                case FALLBACK:
+                    name = '?'; break;
+                case PARALLEL:
+                    name = '\u21C9'; break;
+            }
 
             d3.select(this)
                 .append('rect')
@@ -109,7 +118,7 @@ function renderTree(parent, root, width, x0, x1) {
                 .attr('dy', '0.31em')
                 .attr('x', d => d.data.kind == SEQUENCE ? 5 : 3)
                 .attr('text-anchor', 'end')
-                .text(d.data.name)
+                .text(name)
                 .attr('fill', text_color)
                 .clone(true).lower();
         }
@@ -142,7 +151,8 @@ function renderTree(parent, root, width, x0, x1) {
             let name = d.data.name;
             if (d.data.hasNot) {
                 name = '!' + name;
-            }
+            } 
+
             let text = d3.select(this)
                 .append('text')
                 .attr('dy', '0.31em')
@@ -172,7 +182,7 @@ function renderTree(parent, root, width, x0, x1) {
         var status = getFriendlyStatus(d.data.status());
         d3.select(this)
             .append("svg:title")
-            .text(d => `Node: ${d.data.hasNot?"NOT ": ""}${d.data.name} ${k}\nActive: ${active}\nStatus: ${status}`);
+            .text(d => `Node: ${d.data.hasNot?"NOT ": ""}${d.data.name}\nKind: ${k}\nActive: ${active}\nStatus: ${status}`);
     });
 }
 

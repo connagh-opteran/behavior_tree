@@ -167,8 +167,8 @@ class Node {
  * Creates fallback node.
  * @param {Node[]} children
  */
-function fallback(children = []) {
-    return new Fallback(children);
+function fallback(name = '', children = []) {
+    return new Fallback(name, children);
 }
 
 class Fallback extends Node {
@@ -176,8 +176,8 @@ class Fallback extends Node {
      * Creates fallback node.
      * @param {Node[]} children
      */
-    constructor(children = []) {
-        super('?', FALLBACK, children || []);
+    constructor(name = '', children = []) {
+        super(name, FALLBACK, children || []);
     }
     tick() {
         this.setActive(true);
@@ -197,8 +197,8 @@ class Fallback extends Node {
  * Creates fallback node.
  * @param {Node[]} children
  */
-function sequence(children = []) {
-    return new Sequence(children || []);
+function sequence(name = '', children = []) {
+    return new Sequence(name , children);
 }
 
 class Sequence extends Node {
@@ -206,8 +206,8 @@ class Sequence extends Node {
      * Creates fallback node.
      * @param {Node[]} children
      */
-    constructor(children = []) {
-        super('\u2192', SEQUENCE, children);
+    constructor(name = '', children = []) {
+        super(name, SEQUENCE, children);
     }
     tick() {
         this.setActive(true);
@@ -239,8 +239,8 @@ class Parallel extends Node {
      * @param {number} successCount minimal number of children necessary for the state to be SUCCESS
      * @param {Node[]} children
      */
-    constructor(successCount, children = []) {
-        super('\u21C9', PARALLEL, children || []);
+    constructor(name, successCount, children = []) {
+        super(name, PARALLEL, children || []);
         this.successCount = successCount;
     }
     tick() {
@@ -450,13 +450,13 @@ class BehaviorTree {
         let node;
         switch (nodeAsJson.kind) {
             case FALLBACK:
-                node = fallback();
+                node = fallback((nodeAsJson.name&& nodeAsJson.name != '')? nodeAsJson.name : '?' );
                 break;
             case SEQUENCE:
-                node = sequence();
+                node = sequence((nodeAsJson.name&& nodeAsJson.name != '')? nodeAsJson.name : '\u2192');
                 break;
             case PARALLEL:
-                node = parallel(nodeAsJson.successCount);
+                node = parallel((nodeAsJson.name&& nodeAsJson.name != '')? nodeAsJson.name : '\u21C9', nodeAsJson.successCount);
                 break;
             case ACTION:
                 node = action(nodeAsJson.name, undefined, nodeAsJson.nodeStatus);
@@ -701,7 +701,11 @@ function getFriendlyStatus(status) {
     }
 }
 
-
+/**
+ * Returns turns the parsed xml in a format that can be fed to nodeFromJson
+ * @param {*} xml_string 
+ * @returns 
+ */
 function parse_xml(xml_string) {
     let parser = new DOMParser();
     let xmlDom = parser.parseFromString(xml_string, 'text/xml');
@@ -718,6 +722,13 @@ function parse_xml(xml_string) {
     
 }
 
+/**
+ * Returns a json object describing the xml
+ * 
+ * Currently automaticall collapses the Inverter decorator
+ * @param {*} node 
+ * @returns 
+ */
 function recurse_build_obj(node){
     var node_obj = {children: []};
     let node_name = node.nodeName;
@@ -735,7 +746,7 @@ function recurse_build_obj(node){
             node_obj['name'] = node.getAttribute('name');
             node_obj['hasNot'] = false;
             break;
-        case "decorator":    
+        case "decorator":    // This wont work 
             node_obj['kind'] = "decorator";
             node_obj['name'] = node.getAttribute('name');
             node_obj['hasNot'] = false;
@@ -749,6 +760,7 @@ function recurse_build_obj(node){
             node_obj['kind'] = "condition";
             node_obj['name'] = node.getAttribute('ID');
             node_obj['hasNot'] = false;
+            node_obj['nodeStatus'] = 0;
             break;
         case "inverter":
             node = node.children[0]
