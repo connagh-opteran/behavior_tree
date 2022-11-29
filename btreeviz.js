@@ -103,6 +103,9 @@ function renderTree(parent, root, width, x0, x1) {
                 case PARALLEL:
                     name = '\u21C9'; break;
             }
+            if (d.data.hasNot) {
+                name = '!' + name;
+            } 
 
             d3.select(this)
                 .append('rect')

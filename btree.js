@@ -766,7 +766,7 @@ function recurse_build_obj(node){
             node = node.children[0]
             node_obj = recurse_build_obj(node);
             node_obj['hasNot'] = true;
-            break;
+            return node_obj;
         default:
             node_obj['kind'] = "action";
             node_obj['name'] = node_name
