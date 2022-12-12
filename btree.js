@@ -122,6 +122,7 @@ class Node {
         this.wasActive = false; // this does not seem to be used
         this.nodeStatus = FAILED;
         this.hasNot = false;
+        this.isSubtree = false;
     }
     status() {
         if (this.hasNot) {
@@ -281,8 +282,8 @@ class Parallel extends Node {
  * @param {ActionActivationCallback | undefined} onActivation action activation callback
  * @param {number} status node status
  */
-function action(name, onActivation=undefined, status=RUNNING) {
-    return new Action(name, onActivation, status);
+function action(name, onActivation=undefined, status=RUNNING, isSubtree=undefined) {
+    return new Action(name, onActivation, status, isSubtree);
 }
 
 class Action extends Node {
@@ -293,13 +294,17 @@ class Action extends Node {
      * @param {ActionActivationCallback} onActivation on action
      * @param {number} status initial action status
      */
-    constructor(name, onActivation = undefined, status = RUNNING) {
+    constructor(name, onActivation = undefined, status = RUNNING, isSubtree=undefined) {
         super(name, ACTION);
         /** @property {Array<ActionActivationCallback>} action activation callbacks. */
         this.actionActivationCallback = new Array();
         if (onActivation) {
             this.actionActivationCallback.push(onActivation);
         }
+        if(isSubtree){
+            this.isSubtree = isSubtree;
+        }
+
         this.setStatus(status);
     }
 
@@ -459,7 +464,7 @@ class BehaviorTree {
                 node = parallel((nodeAsJson.name&& nodeAsJson.name != '')? nodeAsJson.name : '\u21C9', nodeAsJson.successCount);
                 break;
             case ACTION:
-                node = action(nodeAsJson.name, undefined, nodeAsJson.nodeStatus);
+                node = action(nodeAsJson.name, undefined, nodeAsJson.nodeStatus, nodeAsJson.isSubtree);
                 break;
             case CONDITION:
                 node = condition(nodeAsJson.name, nodeAsJson.hasNot, nodeAsJson.nodeStatus);
@@ -767,6 +772,13 @@ function recurse_build_obj(node){
             node_obj = recurse_build_obj(node);
             node_obj['hasNot'] = true;
             return node_obj;
+        case "subtree": // Subtree is currently just an 'action' and most be viewed seperatly
+            node_obj['kind'] = "action";
+            node_obj['name'] = node.getAttribute('ID');
+            node_obj['hasNot'] = false;
+            node_obj['nodeStatus'] = 0;
+            node_obj['isSubtree'] = true;
+            break;
         default:
             node_obj['kind'] = "action";
             node_obj['name'] = node_name

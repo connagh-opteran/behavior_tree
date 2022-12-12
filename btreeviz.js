@@ -172,12 +172,19 @@ function renderTree(parent, root, width, x0, x1) {
                     .attr('rx', width/1.75)
                     .attr('ry', '1.0em');
             }
-            if (k == ACTION) {
+            if( k == ACTION) {
                 container
                     .attr('y', '-0.85em')
                     .attr('x', -PAD/2.0)
                     .attr('width', width)
                     .attr('height', '1.75em');
+
+                if (d.data.isSubtree) {
+                    container
+                        .attr('rx', '10')
+                        .attr('ry', '10');
+                    k = "subtree"; 
+                } 
             }
         }
 
