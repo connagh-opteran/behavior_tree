@@ -231,7 +231,7 @@ class Sequence extends Node {
  * @param {Node[]} children
  */
 function parallel(successCount, children = []) {
-    return new Parallel(successCount, children);
+    return new Parallel("", successCount, children);
 }
 
 class Parallel extends Node {
@@ -533,7 +533,7 @@ function parse(buf) {
         }
         indent++; // nested child on the same line should be indented
         return null; // no error to be reported
-    };
+    }
 
     function onError(err) {
         return new BehaviorTree(null, line, err);
@@ -638,8 +638,7 @@ function parse(buf) {
         } break;
 
         default:
-            let err = `Expecting '|', '-', '!', '[', or '(' but have '${ch}'`;
-            return onError(err);
+            return onError(`Expecting '|', '-', '!', '[', or '(' but have '${ch}'`);
         }
 
         if (!notNow && notPending) {

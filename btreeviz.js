@@ -1,3 +1,4 @@
+const { linkRadial } = require("d3");
 
 if (typeof (require) === typeof (Function)) {
     // only load the dependency during development time to get dev support
@@ -451,6 +452,26 @@ function main(parentElement) {
             }
             card.style('visibility', viz);
         });
+
+    let download = document.getElementById('tree-download__button');
+    download.addEventListener('click', function(){
+        var source = document.querySelector(parentElement).innerHTML;
+        if(!source.match(/^<svg[^>]+xmlns="http\:\/\/www\.w3\.org\/2000\/svg"/)){
+            source = source.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');
+        }
+        if(!source.match(/^<svg[^>]+"http\:\/\/www\.w3\.org\/1999\/xlink"/)){
+            source = source.replace(/^<svg/, '<svg xmlns:xlink="http://www.w3.org/1999/xlink"');
+        }
+        var svgblob = new Blob([source], {type:"image/svg+xml;charset=utf-8"});
+        var svgurl = URL.createObjectURL(svgblob);
+        var link = document.createElement('a');
+        link.href = svgurl;
+        link.download= 'tree.svg';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+    })
 
     loadTree(SAMPLE_TREE, parentElement);
 }
