@@ -1,4 +1,3 @@
-const { linkRadial } = require("d3");
 
 if (typeof (require) === typeof (Function)) {
     // only load the dependency during development time to get dev support
